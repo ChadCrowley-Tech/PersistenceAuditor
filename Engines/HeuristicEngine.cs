@@ -36,13 +36,13 @@ namespace PersistenceAuditor.Engines
         {
             if (string.IsNullOrWhiteSpace(path)) return "SUSPICIOUS";
 
-            string lowerPath = path.ToLower();
+            string expandedPath = Environment.ExpandEnvironmentVariables(path).ToLower();
             string lowerName = name.ToLower();
 
             // Check Executable Whitelist first (Overrides the AppData threat logic)
             foreach (string safeExe in SafeExecutables)
             {
-                if (lowerPath.Contains(safeExe) || lowerName.Contains(safeExe))
+                if (expandedPath.Contains(safeExe) || lowerName.Contains(safeExe))
                 {
                     return "BASELINE";
                 }
@@ -51,15 +51,15 @@ namespace PersistenceAuditor.Engines
             // Check Path Whitelist
             foreach (string safePath in SafePaths)
             {
-                if (lowerPath.Contains(safePath))
+                if (expandedPath.Contains(safePath))
                 {
                     return "BASELINE";
                 }
             }
 
             // Identify Malicious Indicators (If it made it past the whitelist, it's highly dangerous)
-            if (lowerPath.Contains(@"\appdata\") || lowerPath.Contains(@"\temp\") ||
-                lowerPath.Contains("powershell.exe") || lowerPath.Contains("cmd.exe"))
+            if (expandedPath.Contains(@"\appdata\") || expandedPath.Contains(@"\temp\") ||
+                expandedPath.Contains("powershell.exe") || expandedPath.Contains("cmd.exe"))
             {
                 return "CRITICAL";
             }
