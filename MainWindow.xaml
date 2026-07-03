@@ -8,7 +8,7 @@
         FontFamily="Consolas">
 
     <Window.Background>
-        <ImageBrush ImageSource="C:\Users\Owner\OneDrive\Pictures\Screenshots\GUIBackground21.jfif" Stretch="UniformToFill" Opacity="1.0" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <ImageBrush ImageSource="/Images/GUIBackground21.jfif" Stretch="UniformToFill" Opacity="1.0" RenderOptions.BitmapScalingMode="HighQuality"/>
     </Window.Background>
 
     <Window.Resources>
@@ -48,7 +48,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Background="#15151A" MouseLeftButtonDown="TitleBar_MouseDown">
-            <TextBlock Text="PERSISTENCE AUDITOR V1.0 - THREAT HUNTING CONSOLE" Foreground="#A09DB0" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="11" FontWeight="Bold"/>
+            <TextBlock Text="PERSISTENCE AUDITOR V3.0 - THREAT HUNTING CONSOLE" Foreground="#A09DB0" VerticalAlignment="Center" Margin="15,0,0,0" FontSize="11" FontWeight="Bold"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="🗕" Click="BtnMinimize_Click" Width="40" Background="Transparent" Foreground="#A09DB0" BorderThickness="0" Cursor="Hand" FontSize="14"/>
                 <Button Content="🗖" Click="BtnMaximize_Click" Width="40" Background="Transparent" Foreground="#A09DB0" BorderThickness="0" Cursor="Hand" FontSize="14"/>
@@ -65,26 +65,30 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="BtnStartHunt" Grid.Column="0" Content="INITIATE DEEP SCAN" Style="{StaticResource CyberButton}" Background="{StaticResource ColorFuture}" Width="220" Height="40" Click="BtnStartHunt_Click"/>
+                <Button x:Name="BtnStartHunt" Grid.Column="0" Content="INITIATE DEEP SCAN" Style="{StaticResource CyberButton}" Width="220" Height="40" Click="BtnStartHunt_Click"/>
 
-                <Button x:Name="BtnExportHunt" Grid.Column="1" Content="EXPORT TO CLIPBOARD" Style="{StaticResource CyberButton}" Width="200" Height="40" Margin="15,0,0,0" Click="BtnExportHunt_Click" IsEnabled="False"/>
+                <Button x:Name="BtnExportHunt" Grid.Column="1" Content="EXPORT TO CLIPBOARD" Style="{StaticResource CyberButton}" Background="{StaticResource ColorFuture}" Width="200" Height="40" Margin="15,0,0,0" Click="BtnExportHunt_Click" IsEnabled="False"/>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="ChkRoutingMode" Style="{StaticResource CyberToggle}" Content="LOCAL AUDIT MODE" Margin="0,0,30,0" Checked="ChkRoutingMode_Checked" Unchecked="ChkRoutingMode_Unchecked"/>
                     <TextBlock Text="FILTER:" Foreground="#A09DB0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="CmbSeverityFilter" Width="150" Height="30" Background="#11101A" Foreground="#FF181222" BorderBrush="#2D2844" BorderThickness="1" FontSize="14" Margin="0,0,20,0" Opacity="0.4">
+                    <ComboBox x:Name="CmbSeverityFilter" SelectionChanged="CmbSeverityFilter_SelectionChanged" Width="150" Height="30" Background="#11101A" Foreground="#FF181222" BorderBrush="#2D2844" BorderThickness="1" FontSize="14" Margin="0,0,20,0" Opacity="0.4">
                         <ComboBoxItem Content="All Severities" IsSelected="True"/>
                         <ComboBoxItem Content="Critical (Red)"/>
                         <ComboBoxItem Content="Suspicious (Yellow)"/>
                     </ComboBox>
 
                     <Border Background="#11101A" BorderBrush="#2D2844" BorderThickness="1" CornerRadius="4" Width="250" Height="30">
-                        <TextBox x:Name="TxtSearch" Background="Transparent" Foreground="White" BorderThickness="0" VerticalAlignment="Center" Margin="5,0" Text="Search registry paths, names..."/>
+                        <Grid>
+                            <TextBlock x:Name="TxtSearchPlaceholder" Text="Search registry paths, names..." Foreground="#55516B" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False"/>
+                            <TextBox x:Name="TxtSearch" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" VerticalAlignment="Center" Margin="10,0" TextChanged="TxtSearch_TextChanged"/>
+                        </Grid>    
                     </Border>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <DataGrid x:Name="GridThreats" Grid.Row="2" Margin="20" Background="Transparent" BorderThickness="0" 
+        <DataGrid x:Name="GridThreats" Grid.Row="2" Margin="20" Background="Transparent" BorderThickness="0"
                   RowBackground="#15151A" AlternatingRowBackground="#1A1A24" 
                   Foreground="#D1C4E9" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#2D2844"
                   AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single"
@@ -137,7 +141,7 @@
             <Grid Margin="20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
@@ -146,8 +150,9 @@
                     <TextBlock x:Name="TxtDetailPath" Text="---" Foreground="#A09DB0" FontSize="12" Margin="0,5,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <Button x:Name="BtnRemediate" Content="DELETE ARTIFACT" Style="{StaticResource CyberButton}" Background="#FF1744" IsEnabled="False" Click="BtnRemediate_Click"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnDispatch" Content="DISPATCH THREAT" Style="{StaticResource CyberButton}" Background="{StaticResource ColorIdentity}" IsEnabled="False" Click="BtnDispatch_Click" Margin="0,0,15,0"/>
+                    <Button x:Name="BtnRemediate" Content="DELETE ARTIFACT" Style="{StaticResource CyberButton}" Background="#FF6D00" IsEnabled="False" Click="BtnRemediate_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

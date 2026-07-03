@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace PersistenceAuditor.Engines
 {
     /// <summary>
-    /// MITRE ATT&CK T1543.003: Hunts for persistence hidden in Windows Services.
+    /// MITRE ATT&CK T1543.003: Identifies persistence mechanisms established via Windows Services.
     /// </summary>
     public static class ServiceScanner
     {
@@ -43,7 +43,7 @@ namespace PersistenceAuditor.Engines
                             string serviceName = parts[0].Trim();
                             string executionPath = parts[1].Trim();
 
-                            // Filter out blank paths and the massive flood of generic svchost.exe processes
+                            // Exclude empty paths and native Service Host (svchost.exe) allocations to reduce baseline noise
                             if (!string.IsNullOrEmpty(executionPath) && !executionPath.Contains("svchost.exe"))
                             {
                                 artifacts.Add(new ThreatArtifact
@@ -59,7 +59,10 @@ namespace PersistenceAuditor.Engines
                     }
                 }
             }
-            catch { }
+            catch 
+            {
+                // Fail silently to ensure localized WMI permission errors do not crash the background scanning thread
+            }
 
             return artifacts;
         }

@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace PersistenceAuditor.Engines
 {
     /// <summary>
-    /// MITRE ATT&CK T1053.005: Hunts for persistence hidden in Windows Scheduled Tasks.
+    /// MITRE ATT&CK T1053.005: Identifies persistence mechanisms established via Windows Scheduled Tasks
     /// </summary>
     public static class ScheduledTaskScanner
     {
@@ -13,7 +13,7 @@ namespace PersistenceAuditor.Engines
         {
             List<ThreatArtifact> artifacts = new List<ThreatArtifact>();
 
-            // Ask PowerShell to get all active tasks, and grab the Task Name and the actual Execution Path
+            // Query the host via PowerShell to enumerate active scheduled tasks and isolate execution actions
             string psCommand = "Get-ScheduledTask | Where-Object State -ne 'Disabled' | ForEach-Object { $_.TaskName + '|||' + $_.Actions[0].Execute }";
 
             ProcessStartInfo processInfo = new ProcessStartInfo()
@@ -43,7 +43,7 @@ namespace PersistenceAuditor.Engines
                             string taskName = parts[0].Trim();
                             string executionPath = parts[1].Trim();
 
-                            // Filter out empty executions or purely native COM handlers to reduce noise
+                            // Exclude null payloads and native Component Object Model (COM) handler actions to isolate non-standard behaviors
                             if (!string.IsNullOrEmpty(executionPath) && !executionPath.Contains("ComHandler"))
                             {
                                 artifacts.Add(new ThreatArtifact
@@ -59,7 +59,10 @@ namespace PersistenceAuditor.Engines
                     }
                 }
             }
-            catch { /* Silently handle access denied errors for system-level tasks */ }
+            catch 
+            {
+                // Fail silently to ensure localized security context blocks do not disrupt the broader pipeline execution
+            }
 
             return artifacts;
         }        

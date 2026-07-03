@@ -1,0 +1,24 @@
+﻿{
+  "SafeExecutables": [
+    "onedrive.exe",
+    "teams.exe",
+    "ms-teams.exe",
+    "discord.exe",
+    "skype.exe",
+    "msedge.exe",
+    "securityhealthsystray.exe",
+    "onedrive",
+    "hostappserviceupdater.exe",
+    "bthudtask.exe",
+    "sc.exe"
+  ],
+  "SafePaths": [
+    "c:\\windows\\",
+    "c:\\program files\\",
+    "c:\\program files (x86)\\",
+    "%windir%\\system32",
+    "%systemroot%\\system32",
+    "c:\\programdata\\microsoft\\windows defender",
+    "lenovo\\vantage"
+  ]
+}

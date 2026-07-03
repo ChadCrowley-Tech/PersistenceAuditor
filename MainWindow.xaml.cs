@@ -1,21 +1,39 @@
-﻿using System;
+﻿using PersistenceAuditor.Interfaces;
+using PersistenceAuditor.Reporters;
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics.Eventing.Reader;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
 
 namespace PersistenceAuditor
 {
     public partial class MainWindow : Window
     {
-        // This collection automatically updates the UI when items are added or removed
+        // Observable collection to automatically trigger UI updates upon data mutation
         public ObservableCollection<ThreatArtifact> HuntResults { get; set; }
+
+        // View wrapper to manage real-time UI filtering and visibility
+        private ICollectionView _threatsView;
+
+        // The active reporting engine, accessed via the interface contract
+        private IIncidentReporter _activeReporter;
 
         public MainWindow()
         {
             InitializeComponent();
             HuntResults = new ObservableCollection<ThreatArtifact>();
             GridThreats.ItemsSource = HuntResults; // Binds the DataGrid to the collection
+
+            // Initialize the collection view and assign the filtering predicate
+            _threatsView = CollectionViewSource.GetDefaultView(HuntResults);
+            _threatsView.Filter = FilterThreats;
+
+            _activeReporter = new LocalJsonReporter();
+
         }
 
         // ==========================================
@@ -27,10 +45,13 @@ namespace PersistenceAuditor
             BtnStartHunt.Content = "SCANNING...";
             BtnStartHunt.IsEnabled = false;
 
+            // Force the engine to read the latest JSON whitelist from disk
+            Engines.HeuristicEngine.ReloadConfiguration();
+
             // Clears previous results
             HuntResults.Clear();
 
-            // Runs the scans on a background thread so the UI doesn't freeze
+            // Execute scans on a background thread to prevent UI blocking
             var liveResults = await System.Threading.Tasks.Task.Run(() =>
             {
                 var combinedResults = new System.Collections.Generic.List<ThreatArtifact>();
@@ -47,7 +68,7 @@ namespace PersistenceAuditor
                 return combinedResults;
             });
 
-            // Populates the UI DataGrid with the live results
+            // Populate the UI DataGrid with the live results
             foreach (var artifact in liveResults)
             {
                 HuntResults.Add(artifact);
@@ -70,7 +91,7 @@ namespace PersistenceAuditor
             exportData += $"Scan Time: {DateTime.Now}\n";
             exportData += $"Total Artifacts Logged: {HuntResults.Count}\n\n";
 
-            foreach (var artifact in HuntResults)
+            foreach (ThreatArtifact artifact in _threatsView)
             {
                 exportData += $"[SEVERITY]: {artifact.Severity}\n";
                 exportData += $"[CATEGORY]: {artifact.Category}\n";
@@ -96,16 +117,66 @@ namespace PersistenceAuditor
                 TxtDetailName.Text = $"[{selectedArtifact.Category}] {selectedArtifact.Name}";
                 TxtDetailPath.Text = selectedArtifact.Path;
 
-                // Only enables the delete button if it's not a verified baseline system file
+                // Enable the remediation button only for non-baseline artifacts
                 BtnRemediate.IsEnabled = selectedArtifact.Severity != "BASELINE";
+
+                // Enable the dispatch button whenever any valid artifact is selected
+                BtnDispatch.IsEnabled = true;
             }
+            else
+            {
+                BtnDispatch.IsEnabled = false;
+            }
+        }
+
+        private bool FilterThreats(object obj)
+        {
+            if (obj is ThreatArtifact artifact)
+            {
+                // Evaluate the severity filter selection
+                if (CmbSeverityFilter != null && CmbSeverityFilter.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    // Convert the readable UI text to uppercase for comparison
+                    string severitySelection = selectedItem.Content.ToString().ToUpper();
+
+                    // Enforce exact match unless the default "All Severities" bypass is active
+                    if (!severitySelection.Contains("ALL"))
+                    {
+                        // Check if the UI dropdown text contains the artifact's exact backend severity code
+                        if (string.IsNullOrEmpty(artifact.Severity) || !severitySelection.Contains(artifact.Severity.ToUpper()))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                // Evaluate text search filter against name, path, and category fields
+                string searchText = TxtSearch.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    bool matchesName = artifact.Name?.ToLower().Contains(searchText) ?? false;
+                    bool matchesPath = artifact.Path?.ToLower().Contains(searchText) ?? false;
+                    bool matchesCategory = artifact.Category?.ToLower().Contains(searchText) ?? false;
+
+                    // Exclude item if text search criteria are not met
+                    if (!matchesName && !matchesPath && !matchesCategory)
+                    {
+                        return false;
+                    }
+                }
+
+                // Include item if all filter criteria are met
+                return true;
+            }
+
+            return false;
         }
 
         private async void BtnRemediate_Click(object sender, RoutedEventArgs e)
         {
             if (GridThreats.SelectedItem is ThreatArtifact selectedArtifact)
             {
-                // Strict Analyst Confirmation
+                // Strict analyst confirmation prompt
                 MessageBoxResult confirmation = MessageBox.Show(
                     $"WARNING: You are about to permanently delete the following persistence mechanism:\n\n" +
                     $"Name: {selectedArtifact.Name}\n" +
@@ -120,7 +191,7 @@ namespace PersistenceAuditor
 
                 string payload = "";
 
-                // Build the dynamic payload based on the Artifact Category
+                // Build the dynamic payload based on the artifact category
                 if (selectedArtifact.Category.Contains("Scheduled Task"))
                 {
                     payload = $"Unregister-ScheduledTask -TaskName '{selectedArtifact.Name}' -Confirm:$false";
@@ -134,14 +205,19 @@ namespace PersistenceAuditor
 
                     payload = $"Remove-ItemProperty -Path '{root}{subKey}' -Name '{selectedArtifact.Name}' -Force -ErrorAction SilentlyContinue";
                 }
+                else if (selectedArtifact.Category.Contains("Service"))
+                {
+                    // Force cmd.exe to handle the sc.exe command to avoid PowerShell quote stripping
+                    payload = $"Stop-Service -Name '{selectedArtifact.Name}' -Force -ErrorAction SilentlyContinue; cmd.exe /c sc delete \"{selectedArtifact.Name}\"";
+                }
 
-                // Execute the payload elevated
+                // Execute the payload with elevated privileges
                 bool success = await ExecuteRemediationAsync(payload);
 
                 if (success)
                 {
                     MessageBox.Show("Artifact successfully purged from the system.", "Remediation Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-                    HuntResults.Remove(selectedArtifact); // Remove it from the UI grid
+                    HuntResults.Remove(selectedArtifact); // Remove the purged artifact from the UI grid
                 }
                 else
                 {
@@ -164,7 +240,7 @@ namespace PersistenceAuditor
                 FileName = "powershell",
                 Arguments = $"-NoProfile -ExecutionPolicy Bypass -EncodedCommand {encodedCommand}",
                 UseShellExecute = true,
-                Verb = "runas", // Forces the UAC prompt for Administrative rights
+                Verb = "runas", // Forces the UAC prompt for administrative rights
                 WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
             };
 
@@ -180,6 +256,48 @@ namespace PersistenceAuditor
             {
                 return false;
             }
+        }
+
+        private async void BtnDispatch_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridThreats.SelectedItem is ThreatArtifact selectedArtifact && _activeReporter != null)
+            {
+                BtnDispatch.IsEnabled = false;
+                string originalText = BtnDispatch.Content.ToString();
+                BtnDispatch.Content = "DISPATCHING...";
+
+                // Fire the payload using the interface contract
+                bool success = await _activeReporter.ReportIncidentAsync(selectedArtifact);
+
+                if (success)
+                {
+                    MessageBox.Show("Incident successfully dispatched via active routing mode.", "Dispatch Confirmed", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to dispatch incident. Verify your network connection or local file permissions.", "Dispatch Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                BtnDispatch.Content = originalText;
+                BtnDispatch.IsEnabled = true;
+            }
+        }
+
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Toggle the visibility of the placeholder text
+            if (TxtSearchPlaceholder != null)
+            {
+                TxtSearchPlaceholder.Visibility = string.IsNullOrEmpty(TxtSearch.Text) ? Visibility.Visible : Visibility.Hidden;
+            }
+
+            // Trigger the ICollectionView to re-evaluate the filter logic immediately
+            _threatsView?.Refresh();
+        }
+
+        private void CmbSeverityFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _threatsView?.Refresh();
         }
 
         // ==========================================
@@ -205,6 +323,34 @@ namespace PersistenceAuditor
         {
             Application.Current.Shutdown();
         }
+
+        // ==========================================
+        // REPORTER ROUTING LOGIC
+        // ==========================================
+
+        private void ChkRoutingMode_Checked(object sender, RoutedEventArgs e)
+        {
+            // Switch to HTTP REST API mode
+            // In a production environment, this URL would be loaded from an external config file
+            _activeReporter = new HttpRestReporter("https://webhook.site/543bc567-fc7d-4bbe-ae26-3e19e2f9f1b9");
+
+            if (ChkRoutingMode != null)
+            {
+                ChkRoutingMode.Content = "API DISPATCH MODE";
+            }
+        }
+
+        private void ChkRoutingMode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Revert back to local file logging
+            _activeReporter = new LocalJsonReporter();
+
+            if (ChkRoutingMode != null)
+            {
+                ChkRoutingMode.Content = "LOCAL AUDIT MODE";
+            }
+        }
+
     }
 
     // ==========================================
@@ -215,7 +361,14 @@ namespace PersistenceAuditor
         public string Severity { get; set; }
         public string Category { get; set; }
         public string Name { get; set; }
-        public string Path { get; set; }
+
+        private string _path;
+        public string Path
+        {
+            get { return _path; }
+            set { _path = Environment.ExpandEnvironmentVariables(value); }
+        }
         public string Status { get; set; }
     }
+
 }

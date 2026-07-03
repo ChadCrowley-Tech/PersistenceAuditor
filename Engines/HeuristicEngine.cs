@@ -1,45 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 namespace PersistenceAuditor.Engines
 {
+    // Data model for deserializing the JSON configuration payload
+    public class WhitelistConfig
+    {
+        public List<string> SafeExecutables { get; set; } = new List<string>();
+        public List<string> SafePaths { get; set; } = new List<string>();
+    }
+
     /// <summary>
-    /// Centralized analysis engine to grade threat severity and reduce Alert Fatigue via Dynamic Whitelisting.
+    /// Centralized analysis engine to grade threat severity and reduce alert fatigue via dynamic whitelisting
     /// </summary>
     public static class HeuristicEngine
     {
-        // The Dynamic Executable Whitelist
-        // Adding known safe Electron/App-based applications that normally flag as critical
-        private static readonly HashSet<string> SafeExecutables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "onedrive.exe",
-            "teams.exe",
-            "ms-teams.exe",
-            "discord.exe",
-            "skype.exe",
-            "msedge.exe",
-            "securityhealthsystray.exe"
-        };
+        private static HashSet<string> SafeExecutables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static List<string> SafePaths = new List<string>();
+        private static readonly string ConfigFile = "WhitelistConfig.json";
 
-        // The Dynamic Path Whitelist
-        // Accounts for Windows environmental variables to stop false positives
-        private static readonly List<string> SafePaths = new List<string>
+
+
+        // Public method accessible by the presentation layer to trigger dynamic configuration reloads
+        public static void ReloadConfiguration()
         {
-            @"c:\windows\",
-            @"c:\program files\",
-            @"c:\program files (x86)\",
-            @"%windir%\system32",
-            @"%systemroot%\system32"
-        };
+            try
+            {
+                if (File.Exists(ConfigFile))
+                {
+                    string json = File.ReadAllText(ConfigFile);
+                    var config = JsonSerializer.Deserialize<WhitelistConfig>(json);
+
+                    if (config != null)
+                    {
+                        // Clear existing collections from memory prior to reloading the updated configuration
+                        SafeExecutables.Clear();
+                        SafePaths.Clear();
+
+                        foreach (var exe in config.SafeExecutables)
+                        {
+                            SafeExecutables.Add(exe);
+                        }
+
+                        foreach (var path in config.SafePaths)
+                        {
+                            SafePaths.Add(Environment.ExpandEnvironmentVariables(path).ToLower());
+                        }
+                    }
+                }
+            }
+            catch 
+            {
+                // Fail silently to ensure a missing or malformed configuration file does not halt application execution; defaults to strict gradin
+            }
+        }
 
         public static string EvaluateSeverity(string path, string name)
         {
             if (string.IsNullOrWhiteSpace(path)) return "SUSPICIOUS";
 
+            // Expand environment variables prior to executing string comparison to ensure accurate path evaluation
             string expandedPath = Environment.ExpandEnvironmentVariables(path).ToLower();
             string lowerName = name.ToLower();
 
-            // Check Executable Whitelist first (Overrides the AppData threat logic)
+            // Evaluate the executable whitelist first (Overrides directory-based threat logic)
             foreach (string safeExe in SafeExecutables)
             {
                 if (expandedPath.Contains(safeExe) || lowerName.Contains(safeExe))
@@ -48,7 +74,7 @@ namespace PersistenceAuditor.Engines
                 }
             }
 
-            // Check Path Whitelist
+            // Evaluate the directory path whitelist
             foreach (string safePath in SafePaths)
             {
                 if (expandedPath.Contains(safePath))
@@ -57,14 +83,14 @@ namespace PersistenceAuditor.Engines
                 }
             }
 
-            // Identify Malicious Indicators (If it made it past the whitelist, it's highly dangerous)
+            // Identify malicious indicators (Artifacts bypassing the whitelist are classified as critical)
             if (expandedPath.Contains(@"\appdata\") || expandedPath.Contains(@"\temp\") ||
                 expandedPath.Contains("powershell.exe") || expandedPath.Contains("cmd.exe"))
             {
                 return "CRITICAL";
             }
 
-            // Default Catch-All for unknown paths
+            // Default fallback for unknown paths
             return "SUSPICIOUS";
         }
     }

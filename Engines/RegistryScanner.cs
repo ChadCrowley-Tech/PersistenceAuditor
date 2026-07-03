@@ -5,7 +5,7 @@ using Microsoft.Win32;
 namespace PersistenceAuditor.Engines
 {
     /// <summary>
-    /// Actively hunts for persistence mechanisms hidden in Windows Registry startup locations.
+    /// MITRE ATT&CK T1547.001: Enumerates standard Windows Registry execution blocks to identify auto-run persistence mechanisms
     /// </summary>
     public static class RegistryScanner
     {
@@ -13,7 +13,7 @@ namespace PersistenceAuditor.Engines
         {
             List<ThreatArtifact> artifacts = new List<ThreatArtifact>();
 
-            // Critical paths where malware establishes persistence
+            // Target registry hive paths historically utilized for run and run-once execution persistence
             var targetLocations = new Dictionary<string, RegistryKey>
             {
                 { @"HKLM\Run", Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run") },

@@ -8,4 +8,18 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Images\GUIBackground21.jfif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\GUIBackground21.jfif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="WhitelistConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
