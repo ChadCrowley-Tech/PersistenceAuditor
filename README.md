@@ -28,4 +28,32 @@ This tool specifically hunts for behaviors aligned with the following enterprise
 * **T1543.003:** Create or Modify System Process: Windows Service
 
 ## 📸 Interface Preview
-(Screenshots coming soon...)
+
+### Feature Highlights
+| <img src="Images/PersistenceAuditorScreenshot.png" width="250"> | <img src="Images/PersistenceAuditor17.png" width="250"> | <img src="Images/PersistenceAuditor18.png" width="250"> | <img src="Images/PersistenceAuditor1.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **Starting 'SplashScreen'** | **Main Dashboard** | **Program Scanning** | **Initial Scan Results** |
+<details>
+<summary><b>🖱️ Click to expand full Application Gallery (18 Additional Images)</b></summary>
+<br>
+  
+| <img src="Images/PersistenceAuditor2.png" width="250"> | <img src="Images/PersistenceAuditor4.png" width="250"> | <img src="Images/PersistenceAuditor20.png" width="250"> | <img src="Images/PersistenceAuditor21.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **[Severity - 'Critical']** | **[Local Audit (.json)]** | **[Local Audit: IncidentAuditTrail.json file]** | **[Local Audit creates daily .json logs]** |
+  
+| <img src="Images/PersistenceAuditor22.png" width="250"> | <img src="Images/PersistenceAuditor23.png" width="250"> | <img src="Images/PersistenceAuditor24.png" width="250"> | <img src="Images/PersistenceAuditor25.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **[API Mode - Dispatch Threat]** | **[Input API endpoint (Using Webhook.com for testing)]** | **[Verification of successful API Dispatch]** | **[Webhook.com site showing it recieved dispatched threat]** |
+
+| <img src="Images/PersistenceAuditor6.png" width="250"> | <img src="Images/PersistenceAuditor7.png" width="250"> | <img src="Images/PersistenceAuditor8.png" width="250"> | <img src="Images/PersistenceAuditor9.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **[Search menu selection results for 'program']** | **[Verification of Scheduled Task deletion]** | **[Verification of successful Scheduled Task deletion]** | **[Verification of Run Key (HKLM\Run) deletion]** |
+
+| <img src="Images/PersistenceAuditor10.png" width="250"> | <img src="Images/PersistenceAuditor11.png" width="250"> | <img src="Images/PersistenceAuditor12.png" width="250"> | <img src="Images/PersistenceAuditor13.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **[Verification of successful Run Key (HKLM\Run) deletion]** | **[Verification of Windows Service deletion]** | **[All Critical threats have been deleted]** | **[Severity level - Suspicious threats]** |
+
+| <img src="Images/PersistenceAuditor14.png" width="250"> | <img src="Images/PersistenceAuditor15.png" width="250"> | <img src="Images/PersistenceAuditor16.png" width="250"> | <img src="Images/PersistenceAuditor19.png" width="250"> |
+| :---: | :---: | :---: | :---: |
+| **[Verification of Run Key (HKLM\Run) deletion]** | **[Verification of Scheduled Task deletion]** | **[All Suspicious threats have been deleted]** | **[Export to Clipboard option]** |
+</details>
