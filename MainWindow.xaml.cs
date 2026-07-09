@@ -4,6 +4,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -328,29 +330,88 @@ namespace PersistenceAuditor
         // REPORTER ROUTING LOGIC
         // ==========================================
 
-        private void ChkRoutingMode_Checked(object sender, RoutedEventArgs e)
-        {
-            // Switch to HTTP REST API mode
-            // In a production environment, this URL would be loaded from an external config file
-            _activeReporter = new HttpRestReporter("https://webhook.site/543bc567-fc7d-4bbe-ae26-3e19e2f9f1b9");
+        private readonly string _settingsFile = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "AppSettings.json");
 
-            if (ChkRoutingMode != null)
+        private async void ChkRoutingMode_Checked(object sender, RoutedEventArgs e)
+        {
+            // Dim Local Audit, highlight API Dispatch
+            if (TxtLocalAudit != null && TxtApiDispatch != null)
             {
-                ChkRoutingMode.Content = "API DISPATCH MODE";
+                TxtLocalAudit.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#55516B"));
+                TxtLocalAudit.Effect = null;
+
+                TxtApiDispatch.Foreground = (System.Windows.Media.Brush)Application.Current.Resources["ColorNetwork"];
+                TxtApiDispatch.Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#00FFFF"), BlurRadius = 12, ShadowDepth = 0, Opacity = 0.8 };
             }
+
+            // Yield to the UI thread for 150ms so the toggle animation renders before the dialog blocks the thread
+            await System.Threading.Tasks.Task.Delay(150);
+
+            string activeUrl = string.Empty;
+
+            // Attempt to load previously saved configuration
+            if (File.Exists(_settingsFile))
+            {
+                try
+                {
+                    string json = File.ReadAllText(_settingsFile);
+                    var settings = JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(json);
+                    if (settings != null && settings.ContainsKey("ApiEndpointUrl"))
+                    {
+                        activeUrl = settings["ApiEndpointUrl"];
+                    }
+                }
+                catch { /* Fails silently and prompts for new input */ }
+            }
+
+            // If no URL is saved, prompt for new URL via the custom dialog
+            if (string.IsNullOrEmpty(activeUrl))
+            {
+                ApiConfigWindow configDialog = new ApiConfigWindow();
+                configDialog.Owner = this; // Centers the popup over the main window
+
+                if (configDialog.ShowDialog() == true)
+                {
+                    activeUrl = configDialog.ConfiguredUrl;
+
+                    // Serialize and save the configuration if requested
+                    if (configDialog.SaveConfiguration)
+                    {
+                        var settings = new System.Collections.Generic.Dictionary<string, string>
+                        {
+                            { "ApiEndpointUrl", activeUrl }
+                        };
+                        File.WriteAllText(_settingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+                    }
+                }
+                else
+                {
+                    // Dialog canceled; revert the UI toggle to Local Mode
+                    ChkRoutingMode.IsChecked = false;
+                    return;
+                }
+            }
+
+            // Instantiate the REST reporter with the acquired URL
+            _activeReporter = new HttpRestReporter(activeUrl);
         }
 
         private void ChkRoutingMode_Unchecked(object sender, RoutedEventArgs e)
         {
+            // Dim API Dispatch, highlight Local Audit
+            if (TxtLocalAudit != null && TxtApiDispatch != null)
+            {
+                TxtApiDispatch.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#55516B"));
+                TxtApiDispatch.Effect = null;
+
+                TxtLocalAudit.Foreground = (System.Windows.Media.Brush)Application.Current.Resources["ColorNetwork"];
+                TxtLocalAudit.Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#00FFFF"), BlurRadius = 12, ShadowDepth = 0, Opacity = 0.8 };
+            }
+
             // Revert back to local file logging
             _activeReporter = new LocalJsonReporter();
-
-            if (ChkRoutingMode != null)
-            {
-                ChkRoutingMode.Content = "LOCAL AUDIT MODE";
-            }
+        
         }
-
     }
 
     // ==========================================

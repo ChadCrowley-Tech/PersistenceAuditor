@@ -1,0 +1,41 @@
+﻿<Window x:Class="PersistenceAuditor.ApiConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configure API Endpoint" Height="250" Width="500"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" FontFamily="Consolas">
+
+    <Border Background="#11101A" BorderBrush="#9D4EDD" BorderThickness="1" CornerRadius="8">
+        <Border.Effect>
+            <DropShadowEffect Color="#9D4EDD" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="CONFIGURE API ROUTING" Foreground="#00FFFF" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                <TextBlock Text="DESTINATION API URL:" Foreground="#A09DB0" FontSize="12" Margin="0,0,0,5"/>
+                <Border Background="#15151A" BorderBrush="#2D2844" BorderThickness="1" CornerRadius="4" Height="35">
+                    <TextBox x:Name="TxtEndpointUrl" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" VerticalAlignment="Center" Margin="10,0" FontSize="14"/>
+                </Border>
+
+                <CheckBox x:Name="ChkSaveConfig" Content="SAVE ENDPOINT FOR FUTURE SESSIONS" Foreground="#A09DB0" Margin="0,15,0,0" IsChecked="True">
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="0.9" ScaleY="0.9"/>
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button x:Name="BtnCancel" Content="CANCEL" Width="100" Height="35" Background="#15151A" Foreground="#A09DB0" BorderBrush="#2D2844" BorderThickness="1" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+                <Button x:Name="BtnConfirm" Content="CONFIRM" Style="{StaticResource CyberButton}" Background="#9D4EDD" Width="120" Height="35" Click="BtnConfirm_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

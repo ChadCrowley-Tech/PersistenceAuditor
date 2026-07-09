@@ -70,15 +70,26 @@
                 <Button x:Name="BtnExportHunt" Grid.Column="1" Content="EXPORT TO CLIPBOARD" Style="{StaticResource CyberButton}" Background="{StaticResource ColorFuture}" Width="200" Height="40" Margin="15,0,0,0" Click="BtnExportHunt_Click" IsEnabled="False"/>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="ChkRoutingMode" Style="{StaticResource CyberToggle}" Content="LOCAL AUDIT MODE" Margin="0,0,30,0" Checked="ChkRoutingMode_Checked" Unchecked="ChkRoutingMode_Unchecked"/>
-                    <TextBlock Text="FILTER:" Foreground="#A09DB0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="CmbSeverityFilter" SelectionChanged="CmbSeverityFilter_SelectionChanged" Width="150" Height="30" Background="#11101A" Foreground="#FF181222" BorderBrush="#2D2844" BorderThickness="1" FontSize="14" Margin="0,0,20,0" Opacity="0.4">
-                        <ComboBoxItem Content="All Severities" IsSelected="True"/>
-                        <ComboBoxItem Content="Critical (Red)"/>
-                        <ComboBoxItem Content="Suspicious (Yellow)"/>
-                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <TextBlock x:Name="TxtLocalAudit" Text="LOCAL AUDIT" Foreground="#00FFFF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="#00FFFF" BlurRadius="12" ShadowDepth="0" Opacity="0.8"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
 
-                    <Border Background="#11101A" BorderBrush="#2D2844" BorderThickness="1" CornerRadius="4" Width="250" Height="30">
+                        <CheckBox x:Name="ChkRoutingMode" Style="{StaticResource CyberToggle}" Checked="ChkRoutingMode_Checked" Unchecked="ChkRoutingMode_Unchecked"/>
+
+                        <TextBlock x:Name="TxtApiDispatch" Text="API DISPATCH" Foreground="#55516B" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                    </StackPanel>                    
+                    <TextBlock Text="FILTER:" Foreground="#A09DB0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Background="#11101A" BorderBrush="#FF6D00" BorderThickness="2" CornerRadius="4" Width="150" Height="30" Margin="0,0,20,0" Opacity="1.0">
+                        <ComboBox x:Name="CmbSeverityFilter" SelectionChanged="CmbSeverityFilter_SelectionChanged" Background="#A09DB0" Foreground="#FF181222" BorderThickness="0" Opacity="0.3" FontSize="14" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content="All Severities" IsSelected="True"/>
+                            <ComboBoxItem Content="Critical (Red)"/>
+                            <ComboBoxItem Content="Suspicious (Yellow)"/>
+                        </ComboBox>
+                    </Border>
+                    <Border Background="#11101A" BorderBrush="{StaticResource ColorIdentity}" BorderThickness="2" CornerRadius="4" Width="250" Height="30">
                         <Grid>
                             <TextBlock x:Name="TxtSearchPlaceholder" Text="Search registry paths, names..." Foreground="#55516B" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False"/>
                             <TextBox x:Name="TxtSearch" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" VerticalAlignment="Center" Margin="10,0" TextChanged="TxtSearch_TextChanged"/>

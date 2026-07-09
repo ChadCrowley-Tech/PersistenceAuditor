@@ -107,20 +107,7 @@
                                         <DropShadowEffect Color="#00FFFF" BlurRadius="12" ShadowDepth="0" Opacity="0.8"/>
                                     </Setter.Value>
                                 </Setter>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="False">
-                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Left"/>
-                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0"/>
-                                <Setter TargetName="Thumb" Property="Fill" Value="{StaticResource ColorIdentity}"/>
-                                <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource ColorIdentity}"/>
-                                <Setter Property="Foreground" Value="{StaticResource ColorIdentity}"/>
-
-                                <Setter TargetName="Thumb" Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect Color="#00FFFF" BlurRadius="12" ShadowDepth="0" Opacity="0.8"/>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
+                            </Trigger>                            
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
