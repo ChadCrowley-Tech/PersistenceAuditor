@@ -43,7 +43,7 @@ This tool specifically hunts for behaviors aligned with the following enterprise
   
 | <img src="Images/PersistenceAuditor22.png" width="250"> | <img src="Images/PersistenceAuditor24.png" width="250"> | <img src="Images/PersistenceAuditor23.png" width="250"> | <img src="Images/PersistenceAuditor25.png" width="250"> |
 | :---: | :---: | :---: | :---: |
-| **[API Mode - Dispatch Threat]** | **[Input API endpoint (Using Webhook.com for testing)]** | **[Verification of successful API Dispatch]** | **[Webhook.com site showing it recieved dispatched threat]** |
+| **[API Mode - Dispatch Threat]** | **[Input webhook endpoint (Using Webhook.site for testing)]** | **[Verification of successful API Dispatch]** | **[Webhook.site showing it recieved dispatched threat]** |
 
 | <img src="Images/PersistenceAuditor6.png" width="250"> | <img src="Images/PersistenceAuditor7.png" width="250"> | <img src="Images/PersistenceAuditor8.png" width="250"> | <img src="Images/PersistenceAuditor9.png" width="250"> |
 | :---: | :---: | :---: | :---: |
