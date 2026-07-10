@@ -20,7 +20,7 @@
             <TextBlock Grid.Row="0" Text="CONFIGURE API ROUTING" Foreground="#00FFFF" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
             <StackPanel Grid.Row="1" VerticalAlignment="Center">
-                <TextBlock Text="DESTINATION API URL:" Foreground="#A09DB0" FontSize="12" Margin="0,0,0,5"/>
+                <TextBlock Text="DESTINATION WEBHOOK URL:" Foreground="#A09DB0" FontSize="12" Margin="0,0,0,5"/>
                 <Border Background="#15151A" BorderBrush="#2D2844" BorderThickness="1" CornerRadius="4" Height="35">
                     <TextBox x:Name="TxtEndpointUrl" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" VerticalAlignment="Center" Margin="10,0" FontSize="14"/>
                 </Border>
